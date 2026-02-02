@@ -1,9 +1,10 @@
 [package]
 name = "xj_cstr"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 description = "Safe implementations of core C string APIs"
 license = "MIT"
 repository = "https://github.com/brk/xj_cstr"
 
 [dependencies]
+bytemuck = "1.25.0"

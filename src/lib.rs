@@ -1,3 +1,25 @@
+mod sealed {
+    pub trait Sealed {}
+    impl Sealed for [i8] {}
+    impl Sealed for [u8] {}
+}
+
+pub trait ByteSlice: sealed::Sealed {
+    fn as_u8_slice(&self) -> &[u8];
+}
+
+impl ByteSlice for [i8] {
+    fn as_u8_slice(&self) -> &[u8] {
+        bytemuck::cast_slice(self)
+    }
+}
+
+impl ByteSlice for [u8] {
+    fn as_u8_slice(&self) -> &[u8] {
+        self
+    }
+}
+
 /// Returns the length of the null-terminated string in `s`,
 /// not counting the null terminator.
 pub fn strlen(s: &[u8]) -> usize {
@@ -284,6 +306,12 @@ mod tests {
     #[test]
     fn strcmp_equal() {
         assert_eq!(strcmp(b"abc\0", b"abc\0"), 0);
+    }
+
+    #[test]
+    fn strcmp_equal_i8_u8() {
+        let abc = ['a' as i8, 'b' as i8, 'c' as i8];
+        assert_eq!(strcmp(abc.as_u8_slice(), b"abc"), 0);
     }
 
     #[test]
