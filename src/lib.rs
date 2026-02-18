@@ -7,6 +7,8 @@ mod sealed {
 pub trait ByteSlice: sealed::Sealed {
     fn as_u8_slice(&self) -> &[u8];
     fn as_mut_u8_slice(&mut self) -> &mut [u8];
+    fn as_c_char_slice(&self) -> &[::core::ffi::c_char];
+    fn as_mut_c_char_slice(&mut self) -> &mut [::core::ffi::c_char];
 }
 
 impl ByteSlice for [i8] {
@@ -17,14 +19,31 @@ impl ByteSlice for [i8] {
     fn as_mut_u8_slice(&mut self) -> &mut [u8] {
         bytemuck::cast_slice_mut(self)
     }
+
+    fn as_c_char_slice(&self) -> &[::core::ffi::c_char] {
+        bytemuck::cast_slice(self)
+    }
+
+    fn as_mut_c_char_slice(&mut self) -> &mut [::core::ffi::c_char] {
+        bytemuck::cast_slice_mut(self)
+    }
 }
 
 impl ByteSlice for [u8] {
     fn as_u8_slice(&self) -> &[u8] {
         self
     }
+
     fn as_mut_u8_slice(&mut self) -> &mut [u8] {
         self
+    }
+
+    fn as_c_char_slice(&self) -> &[::core::ffi::c_char] {
+        bytemuck::cast_slice(self)
+    }
+
+    fn as_mut_c_char_slice(&mut self) -> &mut [::core::ffi::c_char] {
+        bytemuck::cast_slice_mut(self)
     }
 }
 
