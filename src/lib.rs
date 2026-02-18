@@ -28,8 +28,8 @@ impl ByteSlice for [u8] {
     }
 }
 
-/// Returns the length of the null-terminated string in `s`,
-/// not counting the null terminator.
+/// Returns the length of the contents of `s`,
+/// interpreted as a C string.
 pub fn strlen(s: &[u8]) -> usize {
     let mut i = 0;
     while i < s.len() && s[i] != 0 {
@@ -177,6 +177,14 @@ pub fn strstr_idx(haystack: &[u8], needle: &[u8]) -> Option<usize> {
         return Some(i);
     }
     None
+}
+
+/// Finds the first occurrence of the null-terminated string `needle`
+/// in `haystack` and returns a pointer to the match, or null if not found.
+pub unsafe fn strstr_ptr(haystack: &[u8], needle: &[u8]) -> *const u8 {
+    strstr_idx(haystack, needle)
+        .map(|i| haystack.as_ptr().wrapping_add(i))
+        .unwrap_or(core::ptr::null())
 }
 
 /// Appends the null-terminated string `src` onto the end of the
@@ -466,6 +474,28 @@ mod tests {
     #[test]
     fn strstr_exact_match() {
         assert_eq!(strstr_idx(b"abc\0", b"abc\0"), Some(0));
+    }
+
+    // -- strstr_ptr --
+
+    #[test]
+    fn strstr_ptr_found() {
+        let haystack = b"hello world\0";
+        assert_eq!(
+            unsafe { strstr_ptr(haystack, b"world\0") },
+            haystack.as_ptr().wrapping_add(6)
+        );
+    }
+
+    #[test]
+    fn strstr_ptr_not_found() {
+        assert!(unsafe { strstr_ptr(b"hello world\0", b"xyz\0") }.is_null());
+    }
+
+    #[test]
+    fn strstr_ptr_empty_needle() {
+        let haystack = b"hello\0";
+        assert_eq!(unsafe { strstr_ptr(haystack, b"\0") }, haystack.as_ptr());
     }
 
     // -- strcat --
