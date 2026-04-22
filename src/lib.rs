@@ -206,6 +206,14 @@ pub unsafe fn strstr_ptr(haystack: &[u8], needle: &[u8]) -> *const u8 {
         .unwrap_or(core::ptr::null())
 }
 
+/// Finds the first occurrence of the null-terminated string `needle`
+/// in `haystack` and returns a mutable pointer to the match, or null if not found.
+pub unsafe fn strstr_mut_ptr(haystack: &mut [u8], needle: &[u8]) -> *mut u8 {
+    strstr_idx(haystack, needle)
+        .map(|i| haystack.as_mut_ptr().wrapping_add(i))
+        .unwrap_or(core::ptr::null_mut())
+}
+
 /// Appends the null-terminated string `src` onto the end of the
 /// null-terminated string in `dst`. `dst` must have enough space
 /// for the combined string plus a null terminator.
@@ -515,6 +523,32 @@ mod tests {
     fn strstr_ptr_empty_needle() {
         let haystack = b"hello\0";
         assert_eq!(unsafe { strstr_ptr(haystack, b"\0") }, haystack.as_ptr());
+    }
+
+    // -- strstr_mut_ptr --
+
+    #[test]
+    fn strstr_mut_ptr_found() {
+        let mut haystack = *b"hello world\0";
+        assert_eq!(
+            unsafe { strstr_mut_ptr(&mut haystack, b"world\0") },
+            haystack.as_mut_ptr().wrapping_add(6)
+        );
+    }
+
+    #[test]
+    fn strstr_mut_ptr_not_found() {
+        let mut haystack = *b"hello world\0";
+        assert!(unsafe { strstr_mut_ptr(&mut haystack, b"xyz\0") }.is_null());
+    }
+
+    #[test]
+    fn strstr_mut_ptr_empty_needle() {
+        let mut haystack = *b"hello\0";
+        assert_eq!(
+            unsafe { strstr_mut_ptr(&mut haystack, b"\0") },
+            haystack.as_mut_ptr()
+        );
     }
 
     // -- strcat --
